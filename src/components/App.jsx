@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import Searchbar from './Searchbar/Searchbar';
 import Loader from './Loader';
 import ImageGallery from './ImageGallery/ImageGallery';
@@ -9,105 +9,193 @@ import Modal from './Modal/Modal';
 const APY_KEY = '34821518-f662f92316867637fb490ee01';
 
 
-class App extends Component {
+export default function App() {
+  const [value, setValue] = useState('');
+  const [images, setImages] = useState([]);
+  const [largeImageURL, setLargeImageURL] = useState('');
+  const [page, setPage] = useState(1);
+  const [alt, setAlt] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  state = {
-    value: '',
-    images: [],
-    largeImageURL: '',
-    page: 1,
-    alt: '',
-    showModal: false,
-    loading: false,
-  }
-
-  handleInput = event => {
-    this.setState({
-      value: event.target.value,
-      page: 1
-    });
-    // console.log(`state1`, this.state);
+  const handleInput = event => {
+    setValue(event.target.value);
+    setPage(1);
   };
 
-  handleSubmit = event => {
+  const handleSubmit = event => {
     event.preventDefault();
-    if (this.state.value !== '') {
-      this.setState({ loading: true });
+    if (value !== '') {
+      setLoading(true);
       fetch(
-        `https://pixabay.com/api/?q=${this.state.value}&page=${this.state.page}&key=${APY_KEY}&image_type=photo&orientation=horizontal&per_page=12`
+        `https://pixabay.com/api/?q=${value}&page=${page}&key=${APY_KEY}&image_type=photo&orientation=horizontal&per_page=12`
       )
         .then(response => response.json())
         .then(data => {
           // console.log(`data`, data);
-          this.setState({ images: data.hits, loading: false });
-          // console.log(`state2`, this.state);
+          setImages(data.hits);
+          setLoading(false);
         })
         .catch(error => {
           console.log(error.message);
-          this.setState({ loading: false });
+          setLoading(false);
         });
     } else return;
   };
 
-  handleClick = event => {
+  const handleClick = event => {
     event.preventDefault();
-    if (this.state.images.length > 0) {
-      this.setState({ loading: true });
+    if (images.length > 0) {
+      setLoading(true);
       fetch(
-        `https://pixabay.com/api/?q=${this.state.value}&page=${this.state.page + 1}&key=${APY_KEY}&image_type=photo&orientation=horizontal&per_page=12`
+        `https://pixabay.com/api/?q=${value}&page=${page + 1}&key=${APY_KEY}&image_type=photo&orientation=horizontal&per_page=12`
       )
         .then(response => response.json())
         .then(data => {
-          this.setState(prevState => ({
-            images: [...prevState.images, ...data.hits],
-            page: prevState.page + 1,
-            loading: false,
-          }))
+          setImages(prevImages => [...prevImages, ...data.hits]);
+          setPage(prevPage => [prevPage + 1]);
+          setLoading(false);
         })
         .catch(error => {
           console.log(error.message);
-          this.setState({ loading: false });
+          setLoading(false);
         });
     } else return;
   }
 
-  handleOpenModal = (largeImageURL, alt) => {
-    this.setState({
-      showModal: true,
-      largeImageURL: largeImageURL,
-      alt: alt,
-    });
+  const handleOpenModal = (largeImageURL, alt) => {
+    setShowModal(true);
+    setLargeImageURL(largeImageURL);
+    setAlt(alt);
   };
 
-  handleCloseModal = () => {
-    this.setState({ showModal: false });
+  const handleCloseModal = () => {
+    setShowModal(false);
   };
 
-  render() {
-    const { loading, images, showModal, largeImageURL, alt } = this.state;
-
-    return (
-      <div className="app">
+  return (
+    <div className="app">
     
-        <Searchbar onInput={this.handleInput} onSubmit={this.handleSubmit} />
+        <Searchbar onInput={handleInput} onSubmit={handleSubmit} />
         
         <Loader loading={loading} />
 
-        <ImageGallery images={images} onImageClick={this.handleOpenModal} />
+        <ImageGallery images={images} onImageClick={handleOpenModal} />
 
-        {images.length > 0 && <Button onClick={this.handleClick} />}
+        {images.length > 0 && <Button onClick={handleClick} />}
 
         <Modal       
           src={largeImageURL}
           alt={alt}
           showModal={showModal}   
-          onClose={this.handleCloseModal}
+          onClose={handleCloseModal}
         />
       </div>
-    );
-  }
+  );
+
 
   
 };
 
-export default App;
+
+// class extends Component App { ????
+//  state = {
+//     value: '',
+//     images: [],
+//     largeImageURL: '',
+//     page: 1,
+//     alt: '',
+//     showModal: false,
+//     loading: false,
+//   }
+
+//   handleInput = event => {
+//     this.setState({
+//       value: event.target.value,
+//       page: 1
+//     });
+//     // console.log(`state1`, this.state);
+//   };
+
+//   handleSubmit = event => {
+//     event.preventDefault();
+//     if (this.state.value !== '') {
+//       this.setState({ loading: true });
+//       fetch(
+//         `https://pixabay.com/api/?q=${this.state.value}&page=${this.state.page}&key=${APY_KEY}&image_type=photo&orientation=horizontal&per_page=12`
+//       )
+//         .then(response => response.json())
+//         .then(data => {
+//           // console.log(`data`, data);
+//           this.setState({ images: data.hits, loading: false });
+//           // console.log(`state2`, this.state);
+//         })
+//         .catch(error => {
+//           console.log(error.message);
+//           this.setState({ loading: false });
+//         });
+//     } else return;
+//   };
+
+//   handleClick = event => {
+//     event.preventDefault();
+//     if (this.state.images.length > 0) {
+//       this.setState({ loading: true });
+//       fetch(
+//         `https://pixabay.com/api/?q=${this.state.value}&page=${this.state.page + 1}&key=${APY_KEY}&image_type=photo&orientation=horizontal&per_page=12`
+//       )
+//         .then(response => response.json())
+//         .then(data => {
+//           this.setState(prevState => ({
+//             images: [...prevState.images, ...data.hits],
+//             page: prevState.page + 1,
+//             loading: false,
+//           }))
+//         })
+//         .catch(error => {
+//           console.log(error.message);
+//           this.setState({ loading: false });
+//         });
+//     } else return;
+//   }
+
+//   handleOpenModal = (largeImageURL, alt) => {
+//     this.setState({
+//       showModal: true,
+//       largeImageURL: largeImageURL,
+//       alt: alt,
+//     });
+//   };
+
+//   handleCloseModal = () => {
+//     this.setState({ showModal: false });
+//   };
+
+//   render() {
+//     const { loading, images, showModal, largeImageURL, alt } = this.state;
+
+//     return (
+//       <div className="app">
+    
+//         <Searchbar onInput={this.handleInput} onSubmit={this.handleSubmit} />
+        
+//         <Loader loading={loading} />
+
+//         <ImageGallery images={images} onImageClick={this.handleOpenModal} />
+
+//         {images.length > 0 && <Button onClick={this.handleClick} />}
+
+//         <Modal       
+//           src={largeImageURL}
+//           alt={alt}
+//           showModal={showModal}   
+//           onClose={this.handleCloseModal}
+//         />
+//       </div>
+//     );
+//   }
+
+  
+// };
+
+// export default App;
